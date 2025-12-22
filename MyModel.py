@@ -19,9 +19,10 @@ deck1 = cards[:, :8]
 deck2 = cards[:, 8:]
 
 mlb = MultiLabelBinarizer(classes=range(0, 106))
+mlb.fit([])
 
-deck1_ohe = mlb.fit_transform(deck1)
-deck2_ohe = mlb.fit_transform(deck2)
+deck1_ohe = mlb.transform(deck1)
+deck2_ohe = mlb.transform(deck2)
 
 print("Форма one-hot колод:", deck1_ohe.shape)
 
@@ -41,8 +42,10 @@ params = {
     'objective': 'binary',
     'metric': ['auc', 'binary_logloss'],
     'boosting_type': 'gbdt',
-    'num_leaves': 64,
-    'learning_rate': 0.05,
+    'lambda_l1': 10.0,
+    'lambda_l2': 10.0,
+    'num_leaves': 32,
+    'learning_rate': 0.03,
     'feature_fraction': 0.7,
     'bagging_fraction': 0.8,
     'bagging_freq': 5,
@@ -54,7 +57,7 @@ model = lgb.train(
     params,
     train_data,
     valid_sets=[test_data],
-    num_boost_round=2000,
+    num_boost_round=5000,
     callbacks=[
         lgb.early_stopping(stopping_rounds=50),
         lgb.log_evaluation(100)
@@ -67,3 +70,6 @@ print(f"Log-loss:    {log_loss(y_test, y_proba):.4f}")
 
 model.save_model('clash_royale_model.txt')
 print("✅ Модель сохранена!")
+
+# ROC-AUC:     0.6386
+# Log-loss:    0.6565
